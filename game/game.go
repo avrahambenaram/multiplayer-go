@@ -1,5 +1,10 @@
 package game
 
+import (
+	"math/rand"
+	"time"
+)
+
 type Board struct {
   Width  int `json:"width"`
   Height int `json:"height"`
@@ -7,9 +12,10 @@ type Board struct {
 
 type Game struct {
   *Board
-  fruits   []*Fruit
-  players  []*Player
+  fruits    []*Fruit
+  players   []*Player
   movements map[string]func(player *Player)
+  stop      chan bool
 }
 
 type MovePlayerDto struct {
@@ -19,6 +25,7 @@ type MovePlayerDto struct {
 
 type StartGameDto struct {
   GenerateFruitsInSeconds int
+  MaxPoints               int
 }
 
 func New() *Game {
@@ -89,4 +96,47 @@ func (c *Game) FindPlayerById(playerId string) *Player {
     }
   }
   return nil
+}
+
+func (c *Game) Start(props StartGameDto) {
+  ticker := time.NewTicker(time.Duration(props.GenerateFruitsInSeconds))
+  c.stop = make(chan bool)
+
+  go func() {
+    for {
+      select {
+      case <- ticker.C:
+        c.generateFruit()
+      case <- c.stop:
+        ticker.Stop()
+        close(c.stop)
+        c.stop = nil
+        return
+      }
+    }
+  }()
+
+  <- c.stop
+}
+
+func (c *Game) generateFruit() {
+  var fruitType string
+  x, y := rand.Intn(c.Width), rand.Intn(c.Height)
+
+  if rand.Intn(3) > 0 {
+    fruitType = "special"
+  } else {
+    fruitType = "normal"
+  }
+
+  fruit := &Fruit{
+    x,
+    y,
+    fruitType,
+  }
+  c.fruits = append(c.fruits, fruit)
+}
+
+func (c *Game) Stop() {
+  c.stop <- true
 }
