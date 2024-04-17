@@ -2,6 +2,7 @@ package game
 
 import (
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -12,10 +13,12 @@ type Board struct {
 
 type Game struct {
   *Board
-  fruits    []*Fruit
-  players   []*Player
-  movements map[string]func(player *Player)
-  stop      chan bool
+  players    []*Player
+  fruits     map[int][]*Fruit
+  movements  map[string]func(player *Player)
+  maxPoints  int
+  stop       chan bool
+  fruitMutex sync.Mutex
 }
 
 type MovePlayerDto struct {
@@ -28,9 +31,10 @@ type StartGameDto struct {
   MaxPoints               int
 }
 
-func New() *Game {
+func New(board Board) *Game {
   game := &Game{
-    fruits: make([]*Fruit, 0, 10),
+    Board: &board,
+    fruits: make(map[int][]*Fruit, board.Width),
     players: make([]*Player, 0, 10),
     movements: make(map[string]func(player *Player), 4),
   }
@@ -38,6 +42,10 @@ func New() *Game {
   game.movements["right"] = game.movePlayerRight
   game.movements["up"] = game.movePlayerUp
   game.movements["down"] = game.movePlayerDown
+
+  for i := 0; i < board.Width; i++ {
+    game.fruits[i] = make([]*Fruit, 0, board.Height)
+  }
   return game
 }
 
@@ -62,6 +70,7 @@ func (c *Game) MovePlayer(props *MovePlayerDto) {
   movePlayer := c.movements[props.Direction]
   if movePlayer != nil {
     movePlayer(player)
+    c.checkPlayerCollision(player)
   }
 }
 
@@ -89,6 +98,24 @@ func (c *Game) movePlayerDown(player *Player) {
   }
 }
 
+func (c *Game) checkPlayerCollision(player *Player) {
+  fruits := c.fruits[player.X]
+  for i, fruit := range(fruits) {
+    if fruit.Y == player.Y {
+      fruits = append(fruits[i:], fruits[:i]...)
+      if fruit.Type == "special" {
+        player.Points += 5
+      }
+      if fruit.Type == "normal" {
+        player.Points += 1
+      }
+      if player.Points == c.maxPoints {
+        c.Stop()
+      }
+    }
+  }
+}
+
 func (c *Game) FindPlayerById(playerId string) *Player {
   for _, player := range(c.players) {
     if player.Id == playerId {
@@ -99,14 +126,16 @@ func (c *Game) FindPlayerById(playerId string) *Player {
 }
 
 func (c *Game) Start(props StartGameDto) {
+  c.maxPoints = props.MaxPoints
   ticker := time.NewTicker(time.Duration(props.GenerateFruitsInSeconds))
   c.stop = make(chan bool)
 
   go func() {
+    c.fruitMutex = sync.Mutex{}
     for {
       select {
       case <- ticker.C:
-        c.generateFruit()
+        go c.generateFruit()
       case <- c.stop:
         ticker.Stop()
         close(c.stop)
@@ -120,8 +149,24 @@ func (c *Game) Start(props StartGameDto) {
 }
 
 func (c *Game) generateFruit() {
+  c.fruitMutex.Lock()
   var fruitType string
+  canBePlaced := false
   x, y := rand.Intn(c.Width), rand.Intn(c.Height)
+
+  for len(c.fruits[x]) == 10 {
+    x = rand.Intn(c.Width)
+  }
+
+  outerLoop:
+  for !canBePlaced {
+    for _, fruit := range(c.fruits[x]) {
+      if fruit.Y == y {
+        y = rand.Intn(c.Height)
+        break outerLoop
+      }
+    }
+  }
 
   if rand.Intn(3) > 0 {
     fruitType = "special"
@@ -134,9 +179,17 @@ func (c *Game) generateFruit() {
     y,
     fruitType,
   }
-  c.fruits = append(c.fruits, fruit)
+  c.fruits[x] = append(c.fruits[x], fruit)
+  c.fruitMutex.Unlock()
 }
 
 func (c *Game) Stop() {
   c.stop <- true
+  c.resetPoints()
+}
+
+func (c *Game) resetPoints() {
+  for _, player := range(c.players) {
+    player.Points = 0
+  }
 }
