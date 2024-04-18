@@ -8,13 +8,13 @@ type MovePlayerDto struct {
 }
 
 func (c *Game) AddPlayer(player *entity.Player) {
-  c.players = append(c.players, player)
+  c.Players = append(c.Players, player)
 }
 
 func (c *Game) RemovePlayer(playerId string) {
-  for i, player := range(c.players) {
+  for i, player := range(c.Players) {
     if player.Id == playerId {
-      c.players = append(c.players[:i], c.players[i+1:]...)
+      c.Players = append(c.Players[:i], c.Players[i+1:]...)
     }
   }
 }
@@ -57,7 +57,7 @@ func (c *Game) movePlayerDown(player *entity.Player) {
 }
 
 func (c *Game) checkPlayerCollision(player *entity.Player) {
-  fruits := c.fruits[player.X]
+  fruits := c.Fruits[player.X]
   for i, fruit := range(fruits) {
     if fruit.Y == player.Y {
       fruits = append(fruits[i:], fruits[:i]...)
@@ -75,7 +75,7 @@ func (c *Game) checkPlayerCollision(player *entity.Player) {
 }
 
 func (c *Game) FindPlayerById(playerId string) *entity.Player {
-  for _, player := range(c.players) {
+  for _, player := range(c.Players) {
     if player.Id == playerId {
       return player
     }

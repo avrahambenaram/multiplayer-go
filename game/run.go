@@ -14,7 +14,8 @@ type StartGameDto struct {
 
 func (c *Game) Start(props StartGameDto) {
   c.maxPoints = props.MaxPoints
-  ticker := time.NewTicker(time.Duration(props.GenerateFruitsInSeconds))
+  ticker := time.NewTicker(time.Duration(props.GenerateFruitsInSeconds)*time.Second)
+  c.running = true
   c.stop = make(chan bool)
 
   go func() {
@@ -30,8 +31,6 @@ func (c *Game) Start(props StartGameDto) {
       }
     }
   }()
-
-  <- c.stop
 }
 
 func (c *Game) generateFruit() {
@@ -42,16 +41,22 @@ func (c *Game) generateFruit() {
   canBePlaced := false
   x, y := rand.Intn(c.Width), rand.Intn(c.Height)
 
-  for len(c.fruits[x]) == 10 {
+  for len(c.Fruits[x]) == 10 {
     x = rand.Intn(c.Width)
   }
 
   outerLoop:
   for !canBePlaced {
-    for _, fruit := range(c.fruits[x]) {
+    if len(c.Fruits[x]) == 0 {
+      canBePlaced = true
+    }
+
+    for i, fruit := range(c.Fruits[x]) {
       if fruit.Y == y {
         y = rand.Intn(c.Height)
         break outerLoop
+      } else if i == len(c.Fruits[x]) - 1 {
+        canBePlaced = true
       }
     }
   }
@@ -67,16 +72,20 @@ func (c *Game) generateFruit() {
     Y: y,
     Type: fruitType,
   }
-  c.fruits[x] = append(c.fruits[x], fruit)
+
+  if c.running {
+    c.Fruits[x] = append(c.Fruits[x], fruit)
+  }
 }
 
 func (c *Game) Stop() {
+  c.running = false
   c.stop <- true
   c.resetPoints()
 }
 
 func (c *Game) resetPoints() {
-  for _, player := range(c.players) {
+  for _, player := range(c.Players) {
     player.Points = 0
   }
 }
