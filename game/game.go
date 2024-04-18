@@ -131,7 +131,6 @@ func (c *Game) Start(props StartGameDto) {
   c.stop = make(chan bool)
 
   go func() {
-    c.fruitMutex = sync.Mutex{}
     for {
       select {
       case <- ticker.C:
