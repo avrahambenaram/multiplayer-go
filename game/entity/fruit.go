@@ -1,4 +1,4 @@
-package game
+package entity
 
 type Fruit struct {
   X    int    `json:"x"`
