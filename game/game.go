@@ -34,8 +34,12 @@ func New(board Board) *Game {
   game.movements["up"] = game.movePlayerUp
   game.movements["down"] = game.movePlayerDown
 
-  for i := 0; i < board.Width; i++ {
-    game.Fruits[i] = make([]*entity.Fruit, 0, board.Height)
-  }
+  game.cleanFruits()
   return game
+}
+
+func (c *Game) cleanFruits() {
+  for i := 0; i < c.Width; i++ {
+    c.Fruits[i] = make([]*entity.Fruit, 0, c.Height)
+  }
 }

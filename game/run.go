@@ -82,6 +82,7 @@ func (c *Game) Stop() {
   c.running = false
   c.stop <- true
   c.resetPoints()
+  c.cleanFruits()
 }
 
 func (c *Game) resetPoints() {
