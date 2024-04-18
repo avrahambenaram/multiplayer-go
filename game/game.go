@@ -149,6 +149,8 @@ func (c *Game) Start(props StartGameDto) {
 
 func (c *Game) generateFruit() {
   c.fruitMutex.Lock()
+  defer c.fruitMutex.Unlock()
+
   var fruitType string
   canBePlaced := false
   x, y := rand.Intn(c.Width), rand.Intn(c.Height)
@@ -179,7 +181,6 @@ func (c *Game) generateFruit() {
     fruitType,
   }
   c.fruits[x] = append(c.fruits[x], fruit)
-  c.fruitMutex.Unlock()
 }
 
 func (c *Game) Stop() {
