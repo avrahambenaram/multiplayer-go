@@ -1,6 +1,10 @@
 package game
 
-import "github.com/avrahambenaram/multiplayer-go/game/entity"
+import (
+	"slices"
+
+	"github.com/avrahambenaram/multiplayer-go/game/entity"
+)
 
 type MovePlayerDto struct {
   PlayerId  string `json:"playerId"`
@@ -14,7 +18,7 @@ func (c *Game) AddPlayer(player *entity.Player) {
 func (c *Game) RemovePlayer(playerId string) {
   for i, player := range(c.Players) {
     if player.Id == playerId {
-      c.Players = append(c.Players[:i], c.Players[i+1:]...)
+      c.Players = slices.Delete(c.Players, i, i+1)
     }
   }
 }
