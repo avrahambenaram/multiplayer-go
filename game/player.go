@@ -64,7 +64,7 @@ func (c *Game) checkPlayerCollision(player *entity.Player) {
   fruits := c.Fruits[player.X]
   for i, fruit := range(fruits) {
     if fruit.Y == player.Y {
-      fruits = append(fruits[i:], fruits[:i]...)
+      fruits = slices.Delete(fruits, i, i+1)
       if fruit.Type == "special" {
         player.Points += 5
       }
