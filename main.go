@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/avrahambenaram/multiplayer-go/internal/config"
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -20,6 +22,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 func main() {
   http.HandleFunc("/", index)
-  fmt.Println("Server running on port 3000")
-  http.ListenAndServe(":3000", nil)
+
+  fmt.Printf("Server running on port %d\n", config.Port)
+  http.ListenAndServe(fmt.Sprintf(":%d", config.Port), nil)
 }
