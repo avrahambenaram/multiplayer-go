@@ -24,9 +24,9 @@ type Game struct {
 
 func New(board Board) *Game {
   game := &Game{
-    Board: &board,
-    Fruits: make(map[int][]*entity.Fruit, board.Width),
-    Players: make([]*entity.Player, 0, 10),
+    Board:     &board,
+    Fruits:    make(map[int][]*entity.Fruit, board.Width),
+    Players:   make([]*entity.Player, 0, 10),
     movements: make(map[string]func(player *entity.Player), 4),
   }
   game.movements["left"] = game.movePlayerLeft
