@@ -6,35 +6,24 @@ import (
 	"net/http"
 
 	"github.com/avrahambenaram/multiplayer-go/internal/config"
+	"github.com/avrahambenaram/multiplayer-go/internal/game"
+	"github.com/avrahambenaram/multiplayer-go/internal/handlers"
 	socketio "github.com/googollee/go-socket.io"
-	"github.com/googollee/go-socket.io/engineio"
-	"github.com/googollee/go-socket.io/engineio/transport"
-	"github.com/googollee/go-socket.io/engineio/transport/polling"
-	"github.com/googollee/go-socket.io/engineio/transport/websocket"
+	// "github.com/googollee/go-socket.io/engineio"
+	// "github.com/googollee/go-socket.io/engineio/transport"
+	// "github.com/googollee/go-socket.io/engineio/transport/polling"
+	// "github.com/googollee/go-socket.io/engineio/transport/websocket"
 )
 
-// Easier to get running with CORS. Thanks for help @Vindexus and @erkie
-var allowOriginFunc = func(r *http.Request) bool {
-	return true
-}
-
 func main() {
-  server := socketio.NewServer(&engineio.Options{
-		Transports: []transport.Transport{
-			&polling.Transport{
-				CheckOrigin: allowOriginFunc,
-			},
-			&websocket.Transport{
-				CheckOrigin: allowOriginFunc,
-			},
-		},
-	})
+  server := socketio.NewServer(nil)
+  myGame := game.New(game.Board{
+    Width: 10,
+    Height: 10,
+  })
+  websockets := handlers.NewWebSockets(myGame)
 
-	server.OnConnect("/", func(s socketio.Conn) error {
-		s.SetContext("")
-		log.Println("connected:", s.ID())
-		return nil
-	})
+	server.OnConnect("/", websockets.OnConnect)
 
 	server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
 		log.Println("notice:", msg)
@@ -58,9 +47,9 @@ func main() {
 		log.Println("meet error:", e)
 	})
 
-	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
-		log.Println("closed", reason)
-	})
+  server.OnEvent("/", "movement", websockets.OnMovement)
+
+	server.OnDisconnect("/", websockets.OnDisconnect)
 
 	go func() {
 		if err := server.Serve(); err != nil {
