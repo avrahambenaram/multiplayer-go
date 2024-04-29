@@ -3,7 +3,7 @@ package game
 import (
 	"sync"
 
-	"github.com/avrahambenaram/multiplayer-go/game/entity"
+	"github.com/avrahambenaram/multiplayer-go/internal/game/entity"
 )
 
 type Board struct {

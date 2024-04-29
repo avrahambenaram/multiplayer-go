@@ -3,7 +3,7 @@ package game
 import (
 	"slices"
 
-	"github.com/avrahambenaram/multiplayer-go/game/entity"
+	"github.com/avrahambenaram/multiplayer-go/internal/game/entity"
 )
 
 type MovePlayerDto struct {
