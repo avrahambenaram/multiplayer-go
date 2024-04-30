@@ -41,4 +41,5 @@ func (c *WebSockets) OnMovement(s socketio.Conn, msg string) {
 
 func (c *WebSockets) OnDisconnect(s socketio.Conn, reason string) {
   log.Println("Closed: ", reason)
+  c.game.RemovePlayer(s.ID())
 }

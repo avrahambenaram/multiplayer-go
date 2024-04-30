@@ -6,36 +6,27 @@ import (
 	"net/http"
 
 	"github.com/avrahambenaram/multiplayer-go/internal/config"
-	// "github.com/avrahambenaram/multiplayer-go/internal/game"
-	// "github.com/avrahambenaram/multiplayer-go/internal/handlers"
+	"github.com/avrahambenaram/multiplayer-go/internal/game"
+	"github.com/avrahambenaram/multiplayer-go/internal/handlers"
 	socketio "github.com/googollee/go-socket.io"
 )
 
 func main() {
   server := socketio.NewServer(nil)
-  // myGame := game.New(game.Board{
-  //   Width: 10,
-  //   Height: 10,
-  // })
-  // websockets := handlers.NewWebSockets(myGame)
-
-	server.OnConnect("/", func(s socketio.Conn) error {
-    s.SetContext("")
-    log.Println("Connected: ", s.ID())
-
-    return nil
+  myGame := game.New(game.Board{
+    Width: 10,
+    Height: 10,
   })
-  server.OnEvent("/", "ping", func(s socketio.Conn, msg string) {
-    s.Emit("pong", "hello")
-  })
+  websockets := handlers.NewWebSockets(myGame)
+
+	server.OnConnect("/", websockets.OnConnect)
+  server.OnEvent("/", "movement", websockets.OnMovement)
 
 	server.OnError("/", func(s socketio.Conn, e error) {
 		log.Println("meet error:", e)
 	})
 
-	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
-    log.Println("Closed: ", reason)
-  })
+	server.OnDisconnect("/", websockets.OnDisconnect)
 
   go server.Serve()
 	defer server.Close()

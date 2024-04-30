@@ -5,16 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Multiplayer</title>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <script>
-      const socket = io();
-      socket.on('connect', () => {
-        socket.emit('ping', 'ping')
-        socket.on('pong', msg => {
-          console.log(msg);
-        })
-      })
-    </script>
+    <canvas width="10" height="10" id="screen"></canvas>
+    <script src="script.js"></script>
   </body>
 </html>
