@@ -4,25 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Multiplayer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js" integrity="sha512-11t8Q+vY9JlCrr+PveZKTYJq8n7O09Y5X/pk/aMd3vJugSvu4xOunGEUzaADqL3I8cZKE/pBwwCfXzDkRJh2sQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   </head>
   <body>
-  
     <script>
-      const socket = io()
-      socket.on("disconnect", (reason, details) => {
-        // the reason of the disconnection, for example "transport error"
-        console.log(reason);
-
-        // the low-level reason of the disconnection, for example "xhr post error"
-        console.log(details.message);
-
-        // some additional description, for example the status code of the HTTP response
-        console.log(details.description);
-
-        // some additional context, for example the XMLHttpRequest object
-        console.log(details.context);
-      });
+      const socket = io();
+      socket.on('connect', () => {
+        socket.emit('ping', 'ping')
+        socket.on('pong', msg => {
+          console.log(msg);
+        })
+      })
     </script>
   </body>
 </html>

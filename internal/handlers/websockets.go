@@ -20,13 +20,15 @@ func NewWebSockets(game *game.Game) *WebSockets {
 }
 
 func (c *WebSockets) OnConnect(s socketio.Conn) error {
+  s.SetContext("")
+  log.Println("Connected: ", s.ID())
+
   player := &gameEntity.Player{
     X:  rand.Intn(c.game.Width),
     Y:  rand.Intn(c.game.Height),
     Id: s.ID(),
   }
   c.game.AddPlayer(player)
-  log.Println("Connected: ", s.ID())
   return nil
 }
 
